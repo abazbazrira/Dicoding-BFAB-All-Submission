@@ -7,7 +7,12 @@ module.exports = {
   version: '1.0.0',
   register: async (
     server,
-    { playlistSongsService, playlistsService, songsService, validator },
+    {
+      playlistSongsService,
+      playlistsService,
+      songsService,
+      validator,
+    },
   ) => {
     const playlistSongsHandler = new PlaylistSongsHandler(
       playlistSongsService,
@@ -15,8 +20,10 @@ module.exports = {
       songsService,
       validator,
     );
-    server.route(routes(playlistSongsHandler, {
-      auth: JWT_CONFIG.AUTH_STRATEGY_NAME,
-    }));
+    server.route(
+      routes(playlistSongsHandler, {
+        auth: JWT_CONFIG.AUTH_STRATEGY_NAME,
+      }),
+    );
   },
 };

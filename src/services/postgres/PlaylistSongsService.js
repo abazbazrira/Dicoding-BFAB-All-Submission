@@ -3,11 +3,12 @@ const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 
 class PlaylistSongsService {
-  constructor() {
+  constructor(playlistSongActivitiesService) {
     this._pool = new Pool();
+    this._playlistSongActivitiesService = playlistSongActivitiesService;
   }
 
-  async addPlaylistSong(songId, playlistId) {
+  async addPlaylistSong(songId, playlistId, credentialId) {
     const id = `playlist_song-${nanoid(16)}`;
     const query = {
       text: `INSERT INTO playlistsongs
@@ -21,9 +22,16 @@ class PlaylistSongsService {
     if (!rowCount) {
       throw new InvariantError('Song playlist failed to add');
     }
+
+    await this._playlistSongActivitiesService.addPlaylistSongActivities(
+      playlistId,
+      songId,
+      credentialId,
+      'add',
+    );
   }
 
-  async deletePlaylistSong(playlistId, songId) {
+  async deletePlaylistSong(playlistId, songId, credentialId) {
     const query = {
       text: `DELETE FROM playlistsongs
               WHERE playlist_id = $1 AND song_id = $2
@@ -34,8 +42,15 @@ class PlaylistSongsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new InvariantError('Playlist song failed to delete');
+      throw new InvariantError('Song playlist failed to delete');
     }
+
+    await this._playlistSongActivitiesService.addPlaylistSongActivities(
+      playlistId,
+      songId,
+      credentialId,
+      'delete',
+    );
   }
 }
 

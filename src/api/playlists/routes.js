@@ -23,6 +23,14 @@ const routes = (handler, { auth }) => [
       auth,
     },
   },
+  {
+    method: 'GET',
+    path: '/playlists/{playlistId}/activities',
+    handler: handler.getPlaylistActivitiesHandler,
+    options: {
+      auth,
+    },
+  },
 ];
 
 module.exports = routes;

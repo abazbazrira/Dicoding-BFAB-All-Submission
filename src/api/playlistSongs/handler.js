@@ -1,5 +1,10 @@
 class PlaylistSongsHandler {
-  constructor(playlistSongsService, playlistsService, songsService, validator) {
+  constructor(
+    playlistSongsService,
+    playlistsService,
+    songsService,
+    validator,
+  ) {
     this._playlistSongsService = playlistSongsService;
     this._playlistsService = playlistsService;
     this._songsService = songsService;
@@ -18,7 +23,8 @@ class PlaylistSongsHandler {
 
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
     await this._songsService.getSongById(songId);
-    await this._playlistSongsService.addPlaylistSong(songId, playlistId);
+    await this._playlistSongsService.addPlaylistSong(songId, playlistId, credentialId);
+
     const response = h.response({
       status: 'success',
       message: 'The song has been successfully added to the playlist',
@@ -52,7 +58,7 @@ class PlaylistSongsHandler {
     const { id: credentialId } = auth.credentials;
 
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
-    await this._playlistSongsService.deletePlaylistSong(playlistId, songId);
+    await this._playlistSongsService.deletePlaylistSong(playlistId, songId, credentialId);
 
     return {
       status: 'success',
