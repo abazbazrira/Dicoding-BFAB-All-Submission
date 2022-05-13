@@ -60,6 +60,31 @@ class SongsService {
     return result.rows.map(mapDBToSongModel)[0];
   }
 
+  async getSongsByAlbumId(id) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE albumid = $1',
+      values: [id],
+    };
+    const result = await this._pool.query(query);
+
+    return result.rows.map(mapDBToSongModel);
+  }
+
+  async getSongsByPlaylistId(playlistId) {
+    const query = {
+      text: `SELECT songs.id, songs.title, songs.performer
+              FROM songs
+              LEFT JOIN playlistsongs
+              ON playlistsongs.song_id = songs.id
+              WHERE playlistsongs.playlist_id = $1`,
+      values: [playlistId],
+    };
+
+    const { rows } = await this._pool.query(query);
+
+    return rows;
+  }
+
   async editSongById(id, { title, year, genre, performer, duration, albumId }) {
     const query = {
       text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, albumId = $6 WHERE id = $7 RETURNING id',
