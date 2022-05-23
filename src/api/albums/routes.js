@@ -1,4 +1,4 @@
-const routes = (handler) => [
+const routes = (handler, { auth }) => [
   {
     method: 'POST',
     path: '/albums',
@@ -23,6 +23,19 @@ const routes = (handler) => [
     method: 'DELETE',
     path: '/albums/{id}',
     handler: handler.deleteAlbumByIdHandler,
+  },
+  {
+    method: 'POST',
+    path: '/albums/{id}/likes',
+    handler: handler.postAlbumLikesByIdHandler,
+    options: {
+      auth,
+    },
+  },
+  {
+    method: 'GET',
+    path: '/albums/{id}/likes',
+    handler: handler.getAlbumLikesByIdHandler,
   },
 ];
 

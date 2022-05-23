@@ -5,15 +5,18 @@ class ExtensionsHandler {
   onPreResponseHandler(request, h) {
     const { response } = request;
 
-    const authenticationsError = response?.output?.payload;
+    const requestError = response?.output?.payload;
 
-    if (authenticationsError?.error === 'Unauthorized') {
+    if (
+      requestError?.error === 'Unauthorized' ||
+      requestError?.error === 'Request Entity Too Large'
+    ) {
       // authentication error
       const newResponse = h.response({
         status: 'fail',
-        message: authenticationsError.message,
+        message: requestError.message,
       });
-      newResponse.code(authenticationsError.statusCode);
+      newResponse.code(requestError.statusCode);
       return newResponse;
     }
 

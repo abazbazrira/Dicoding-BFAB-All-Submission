@@ -1,3 +1,4 @@
+const { JWT_CONFIG } = require('../../config');
 const AlbumsHandler = require('./handler');
 const routes = require('./routes');
 
@@ -6,6 +7,10 @@ module.exports = {
   version: '1.0.0',
   register: async (server, { service, validator }) => {
     const albumsHandler = new AlbumsHandler(service, validator);
-    server.route(routes(albumsHandler));
+    server.route(
+      routes(albumsHandler, {
+        auth: JWT_CONFIG.AUTH_STRATEGY_NAME,
+      })
+    );
   },
 };

@@ -33,6 +33,19 @@ const JWT_CONFIG = {
   },
 };
 
+const RABBITMQ_CONFIG = {
+  RABBITMQ_SERVER: getEnv('RABBITMQ_SERVER'),
+};
+
+const REDIS_CONFIG = {
+  SERVER: getEnv('REDIS_SERVER'),
+  DURATION: 1800,
+};
+
 module.exports = {
-  getEnv, SERVER_CONFIG, JWT_CONFIG,
+  getEnv,
+  SERVER_CONFIG,
+  JWT_CONFIG,
+  RABBITMQ_CONFIG,
+  REDIS_CONFIG,
 };

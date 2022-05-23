@@ -1,8 +1,9 @@
 // mengimpor dotenv dan menjalankan konfigurasinya
-require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 // albums
 const albums = require('./api/albums');
@@ -24,6 +25,7 @@ const playlistSongs = require('./api/playlistSongs');
 const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
 const PlaylistSongsValidator = require('./validator/playlistSongs');
 
+// playlist song activities
 const PlaylistSongActivitiesService = require('./services/postgres/PlaylistSongActivitiesService');
 
 // collaborations
@@ -42,23 +44,45 @@ const AuthenticationsService = require('./services/postgres/AuthenticationsServi
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 
+// exports
+const exportsPlugin = require('./api/exports');
+const ExportsValidator = require('./validator/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+
+// uploads
+const uploadsPlugin = require('./api/uploads');
+const UploadsValidator = require('./validator/uploads');
+const StorageService = require('./services/storage/StorageService');
+
+// redis cache
+const CacheService = require('./services/redis/CacheService');
+
 // configuration
 const { SERVER_CONFIG, JWT_CONFIG } = require('./config');
 // extensions
 const { extensionsPlugin } = require('./api/extensions');
 
 const init = async () => {
+  // path
+  const storagePath = path.resolve(__dirname, 'api/uploads/file/pictures');
+
+  // services
+  const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
-  const songsService = new SongsService();
-  const albumsService = new AlbumsService(songsService);
+  const songsService = new SongsService(cacheService);
+  const albumsService = new AlbumsService(songsService, cacheService);
   const usersService = new UsersService();
   const playlistSongActivitiesService = new PlaylistSongActivitiesService();
   const playlistsService = new PlaylistsService(
     songsService,
-    collaborationsService,
+    collaborationsService
   );
-  const playlistSongsService = new PlaylistSongsService(playlistSongActivitiesService);
+  const playlistSongsService = new PlaylistSongsService(
+    playlistSongActivitiesService,
+    cacheService
+  );
   const authenticationsService = new AuthenticationsService();
+  const storageService = new StorageService(storagePath, albumsService);
 
   const server = Hapi.server({
     port: SERVER_CONFIG.PORT,
@@ -75,13 +99,16 @@ const init = async () => {
     {
       plugin: Jwt,
     },
+    {
+      plugin: Inert,
+    },
   ]);
 
   // mendefinisikan strategy autentikasi jwt
   server.auth.strategy(
     JWT_CONFIG.AUTH_STRATEGY_NAME,
     JWT_CONFIG.AUTH_STRATEGY_SCHEME,
-    JWT_CONFIG.AUTH_STRATEGY_OPTIONS,
+    JWT_CONFIG.AUTH_STRATEGY_OPTIONS
   );
 
   await server.register([
@@ -139,6 +166,21 @@ const init = async () => {
         usersService,
         tokenManager: TokenManager,
         validator: AuthenticationsValidator,
+      },
+    },
+    {
+      plugin: exportsPlugin,
+      options: {
+        exportsService: ProducerService,
+        playlistsService,
+        validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: uploadsPlugin,
+      options: {
+        service: storageService,
+        validator: UploadsValidator,
       },
     },
     {

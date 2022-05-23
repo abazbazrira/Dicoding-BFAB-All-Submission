@@ -3,9 +3,10 @@ const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 
 class PlaylistSongsService {
-  constructor(playlistSongActivitiesService) {
+  constructor(playlistSongActivitiesService, cacheService) {
     this._pool = new Pool();
     this._playlistSongActivitiesService = playlistSongActivitiesService;
+    this._cacheService = cacheService;
   }
 
   async addPlaylistSong(songId, playlistId, credentialId) {
